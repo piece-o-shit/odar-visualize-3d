@@ -2,6 +2,12 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { 
+  CubeIcon, 
+  SquareIcon, 
+  ArrowUpIcon, 
+  ArrowRightIcon 
+} from 'lucide-react';
 
 interface ViewControlsProps {
   onViewChange: (view: string) => void;
@@ -10,10 +16,10 @@ interface ViewControlsProps {
 
 export const ViewControls: React.FC<ViewControlsProps> = ({ onViewChange, currentView }) => {
   const views = [
-    { id: 'isometric', label: 'Isometric View' },
-    { id: 'front', label: 'Front View' },
-    { id: 'top', label: 'Top View' },
-    { id: 'side', label: 'Side View' },
+    { id: 'isometric', label: 'Isometric View', icon: <CubeIcon size={16} /> },
+    { id: 'front', label: 'Front View', icon: <SquareIcon size={16} /> },
+    { id: 'top', label: 'Top View', icon: <ArrowUpIcon size={16} /> },
+    { id: 'side', label: 'Side View', icon: <ArrowRightIcon size={16} /> },
   ];
 
   return (
@@ -26,9 +32,10 @@ export const ViewControls: React.FC<ViewControlsProps> = ({ onViewChange, curren
                 variant={currentView === view.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => onViewChange(view.id)}
-                className="transition-all duration-300 hover:shadow-md"
+                className="transition-all duration-300 hover:shadow-md flex items-center gap-1"
               >
-                {view.label}
+                {view.icon}
+                <span className="hidden md:inline">{view.label}</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>

@@ -120,7 +120,7 @@ const Index = () => {
                 </div>
                 
                 <div className="relative bg-gray-50 rounded-lg overflow-hidden shadow-inner h-[500px]">
-                  <OdARModelViewer className="w-full h-full" />
+                  <OdARModelViewer className="w-full h-full" currentView={currentView} />
                   
                   {/* View indicator */}
                   <div className="absolute bottom-4 left-4 backdrop-blur-md bg-white/60 px-3 py-1.5 rounded-full shadow-sm border border-gray-200 text-xs font-medium">

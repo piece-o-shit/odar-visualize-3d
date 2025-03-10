@@ -5,18 +5,58 @@ import { toast } from 'sonner';
 
 interface OdARModelViewerProps {
   className?: string;
+  currentView?: string;
 }
 
-export const OdARModelViewer = ({ className = '' }: OdARModelViewerProps) => {
+export const OdARModelViewer = ({ className = '', currentView = 'isometric' }: OdARModelViewerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const modelGroupRef = useRef<THREE.Group | null>(null);
+
+  // Update camera position based on view
+  useEffect(() => {
+    if (!cameraRef.current || !modelGroupRef.current) return;
+
+    // Reset rotations first
+    if (modelGroupRef.current) {
+      modelGroupRef.current.rotation.set(0, 0, 0);
+    }
+    
+    // Set camera position based on view
+    switch (currentView) {
+      case 'isometric':
+        cameraRef.current.position.set(2, 2, 5);
+        break;
+      case 'front':
+        cameraRef.current.position.set(0, 0, 5);
+        break;
+      case 'top':
+        cameraRef.current.position.set(0, 5, 0);
+        cameraRef.current.up.set(0, 0, -1); // Adjust up vector for top view
+        break;
+      case 'side':
+        cameraRef.current.position.set(5, 0, 0);
+        break;
+      default:
+        cameraRef.current.position.set(2, 2, 5);
+    }
+    
+    cameraRef.current.lookAt(0, 0, 0);
+    
+    // Announce the view change
+    toast.info(`Switched to ${currentView} view`);
+  }, [currentView]);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     // Scene setup
     const scene = new THREE.Scene();
+    sceneRef.current = scene;
     scene.background = new THREE.Color(0xf7fafc);
 
     // Camera setup
@@ -26,12 +66,14 @@ export const OdARModelViewer = ({ className = '' }: OdARModelViewerProps) => {
       0.1,
       1000
     );
+    cameraRef.current = camera;
     camera.position.z = 5;
     camera.position.y = 2;
     camera.position.x = 2;
 
     // Renderer setup
     const renderer = new THREE.WebGLRenderer({ antialias: true });
+    rendererRef.current = renderer;
     renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
@@ -49,6 +91,11 @@ export const OdARModelViewer = ({ className = '' }: OdARModelViewerProps) => {
     const backLight = new THREE.DirectionalLight(0xffffff, 0.5);
     backLight.position.set(-5, 5, -5);
     scene.add(backLight);
+
+    // Create a group to hold all model parts
+    const modelGroup = new THREE.Group();
+    modelGroupRef.current = modelGroup;
+    scene.add(modelGroup);
 
     // Helper functions for creating the OdAR model
     const createMainEnclosure = () => {
@@ -293,30 +340,36 @@ export const OdARModelViewer = ({ className = '' }: OdARModelViewerProps) => {
       return group;
     };
 
-    // Create and position all model elements
-    const mainEnclosure = createMainEnclosure();
-    scene.add(mainEnclosure);
-    
-    const display = createDisplay();
-    display.position.y = 0.1;
-    scene.add(display);
-    
-    const sensors = createSensors();
-    scene.add(sensors);
-    
-    const buttons = createButtons();
-    scene.add(buttons);
-    
-    const grille = createGrille();
-    scene.add(grille);
-    
-    const led = createLED();
-    scene.add(led);
-    
-    const ports = createPorts();
-    scene.add(ports);
+    // Create additional components based on specifications
+    const createBatteryCompartment = () => {
+      const group = new THREE.Group();
+      
+      // Battery compartment
+      const compartmentGeometry = new THREE.BoxGeometry(0.3, 0.1, 0.2);
+      const compartmentMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xa7c9e5,
+        metalness: 0.2,
+        roughness: 0.4,
+      });
+      const compartment = new THREE.Mesh(compartmentGeometry, compartmentMaterial);
+      compartment.position.set(0, -0.2, -0.05);
+      group.add(compartment);
+      
+      // Access door
+      const doorGeometry = new THREE.BoxGeometry(0.2, 0.02, 0.15);
+      const doorMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0x777777,
+        metalness: 0.5,
+        roughness: 0.3,
+      });
+      const door = new THREE.Mesh(doorGeometry, doorMaterial);
+      door.position.set(0, -0.26, -0.05);
+      group.add(door);
+      
+      return group;
+    };
 
-    // Add text labels
+    // Create text labels
     const createTextSprite = (text: string) => {
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
@@ -341,9 +394,35 @@ export const OdARModelViewer = ({ className = '' }: OdARModelViewerProps) => {
       return sprite;
     };
 
+    // Create and position all model elements
+    const mainEnclosure = createMainEnclosure();
+    modelGroup.add(mainEnclosure);
+    
+    const display = createDisplay();
+    display.position.y = 0.1;
+    modelGroup.add(display);
+    
+    const sensors = createSensors();
+    modelGroup.add(sensors);
+    
+    const buttons = createButtons();
+    modelGroup.add(buttons);
+    
+    const grille = createGrille();
+    modelGroup.add(grille);
+    
+    const led = createLED();
+    modelGroup.add(led);
+    
+    const ports = createPorts();
+    modelGroup.add(ports);
+    
+    const batteryCompartment = createBatteryCompartment();
+    modelGroup.add(batteryCompartment);
+
     const displayLabel = createTextSprite('OdAR');
     displayLabel.position.set(0, 0.1, 0.2);
-    scene.add(displayLabel);
+    modelGroup.add(displayLabel);
 
     // Add rotation controls
     let isDragging = false;
@@ -357,14 +436,7 @@ export const OdARModelViewer = ({ className = '' }: OdARModelViewerProps) => {
     // Auto-rotation
     const autoRotateModel = () => {
       if (autoRotate) {
-        mainEnclosure.rotation.y += rotationSpeed;
-        display.rotation.y += rotationSpeed;
-        sensors.rotation.y += rotationSpeed;
-        buttons.rotation.y += rotationSpeed;
-        grille.rotation.y += rotationSpeed;
-        led.rotation.y += rotationSpeed;
-        ports.rotation.y += rotationSpeed;
-        displayLabel.rotation.y += rotationSpeed;
+        modelGroup.rotation.y += rotationSpeed;
       }
     };
 
@@ -388,22 +460,8 @@ export const OdARModelViewer = ({ className = '' }: OdARModelViewerProps) => {
         const rotationY = deltaMove.x * 0.01;
         const rotationX = deltaMove.y * 0.01;
 
-        mainEnclosure.rotation.y += rotationY;
-        mainEnclosure.rotation.x += rotationX;
-        display.rotation.y += rotationY;
-        display.rotation.x += rotationX;
-        sensors.rotation.y += rotationY;
-        sensors.rotation.x += rotationX;
-        buttons.rotation.y += rotationY;
-        buttons.rotation.x += rotationX;
-        grille.rotation.y += rotationY;
-        grille.rotation.x += rotationX;
-        led.rotation.y += rotationY;
-        led.rotation.x += rotationX;
-        ports.rotation.y += rotationY;
-        ports.rotation.x += rotationX;
-        displayLabel.rotation.y += rotationY;
-        displayLabel.rotation.x += rotationX;
+        modelGroup.rotation.y += rotationY;
+        modelGroup.rotation.x += rotationX;
 
         previousMousePosition = {
           x: e.clientX,
@@ -448,22 +506,8 @@ export const OdARModelViewer = ({ className = '' }: OdARModelViewerProps) => {
         const rotationY = deltaX * 0.01;
         const rotationX = deltaY * 0.01;
         
-        mainEnclosure.rotation.y += rotationY;
-        mainEnclosure.rotation.x += rotationX;
-        display.rotation.y += rotationY;
-        display.rotation.x += rotationX;
-        sensors.rotation.y += rotationY;
-        sensors.rotation.x += rotationX;
-        buttons.rotation.y += rotationY;
-        buttons.rotation.x += rotationX;
-        grille.rotation.y += rotationY;
-        grille.rotation.x += rotationX;
-        led.rotation.y += rotationY;
-        led.rotation.x += rotationX;
-        ports.rotation.y += rotationY;
-        ports.rotation.x += rotationX;
-        displayLabel.rotation.y += rotationY;
-        displayLabel.rotation.x += rotationX;
+        modelGroup.rotation.y += rotationY;
+        modelGroup.rotation.x += rotationX;
         
         touchStartX = touch.clientX;
         touchStartY = touch.clientY;
@@ -472,7 +516,7 @@ export const OdARModelViewer = ({ className = '' }: OdARModelViewerProps) => {
 
     // Handle window resize
     const handleResize = () => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || !camera || !renderer) return;
       
       camera.aspect = containerRef.current.clientWidth / containerRef.current.clientHeight;
       camera.updateProjectionMatrix();
@@ -515,9 +559,27 @@ export const OdARModelViewer = ({ className = '' }: OdARModelViewerProps) => {
     
     animate();
 
+    // Apply initial view position
+    switch (currentView) {
+      case 'isometric':
+        camera.position.set(2, 2, 5);
+        break;
+      case 'front':
+        camera.position.set(0, 0, 5);
+        break;
+      case 'top':
+        camera.position.set(0, 5, 0);
+        camera.up.set(0, 0, -1);
+        break;
+      case 'side':
+        camera.position.set(5, 0, 0);
+        break;
+    }
+    camera.lookAt(0, 0, 0);
+
     // Cleanup function
     return () => {
-      if (containerRef.current) {
+      if (containerRef.current && renderer) {
         containerRef.current.removeChild(renderer.domElement);
       }
       containerRef.current?.removeEventListener('mousedown', onMouseDown);
