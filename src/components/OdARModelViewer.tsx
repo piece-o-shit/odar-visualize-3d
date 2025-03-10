@@ -252,10 +252,11 @@ export const OdARModelViewer = ({ className = '' }: OdARModelViewerProps) => {
 
     const createLED = () => {
       const geometry = new THREE.CylinderGeometry(0.015, 0.015, 0.005, 32);
-      const material = new THREE.MeshBasicMaterial({
+      // Replace MeshBasicMaterial with MeshStandardMaterial which supports emissive properties
+      const material = new THREE.MeshStandardMaterial({
         color: 0x22ff22,
         emissive: 0x22ff22,
-        emissiveIntensity: 0.5,
+        emissiveIntensity: 0.5
       });
       const led = new THREE.Mesh(geometry, material);
       led.rotation.x = Math.PI / 2;
@@ -496,7 +497,8 @@ export const OdARModelViewer = ({ className = '' }: OdARModelViewerProps) => {
       
       // Pulse LED effect
       const time = Date.now() * 0.001;
-      const ledMaterial = led.material as THREE.MeshBasicMaterial;
+      // Cast to correct material type
+      const ledMaterial = led.material as THREE.MeshStandardMaterial;
       ledMaterial.emissiveIntensity = 0.5 + Math.sin(time * 2) * 0.3;
       
       renderer.render(scene, camera);
