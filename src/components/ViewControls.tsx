@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
-  CubeIcon, 
+  Box, 
   SquareIcon, 
   ArrowUpIcon, 
   ArrowRightIcon 
@@ -16,7 +16,7 @@ interface ViewControlsProps {
 
 export const ViewControls: React.FC<ViewControlsProps> = ({ onViewChange, currentView }) => {
   const views = [
-    { id: 'isometric', label: 'Isometric View', icon: <CubeIcon size={16} /> },
+    { id: 'isometric', label: 'Isometric View', icon: <Box size={16} /> },
     { id: 'front', label: 'Front View', icon: <SquareIcon size={16} /> },
     { id: 'top', label: 'Top View', icon: <ArrowUpIcon size={16} /> },
     { id: 'side', label: 'Side View', icon: <ArrowRightIcon size={16} /> },
