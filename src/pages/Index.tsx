@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { OdARModelViewer } from '@/components/OdARModelViewer';
 import { ViewControls } from '@/components/ViewControls';
@@ -11,7 +10,6 @@ const Index = () => {
   const [showIntro, setShowIntro] = useState(true);
   const titleRef = useRef<HTMLDivElement>(null);
 
-  // Fade in animation for title elements
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -43,7 +41,6 @@ const Index = () => {
     };
   }, []);
 
-  // Dismiss intro section after timeout
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowIntro(false);
@@ -57,7 +54,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-sky-100 overflow-hidden relative">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-sky-100">
       {/* Background subtle pattern */}
       <div className="absolute inset-0 pattern-grid-lg opacity-5"></div>
       
@@ -79,7 +76,7 @@ const Index = () => {
           </div>
         </div>
       ) : (
-        <main className="container mx-auto px-4 py-8 relative z-10">
+        <main className="container mx-auto px-4 py-8 relative z-10 pb-32">
           <header className="text-center mb-8 md:mb-12">
             <div className="space-y-2 animate-fade-in">
               <h1 className="text-3xl md:text-4xl font-bold font-display text-gray-900">
@@ -90,7 +87,6 @@ const Index = () => {
           </header>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            {/* Left sidebar with info */}
             <div className="lg:col-span-1 space-y-6 animate-fade-in">
               <div className="backdrop-blur-sm bg-white/80 p-6 rounded-lg border border-gray-200 shadow-sm">
                 <h2 className="text-xl font-semibold mb-4 font-display">About OdAR</h2>
@@ -111,7 +107,6 @@ const Index = () => {
               </div>
             </div>
             
-            {/* Main 3D viewer */}
             <div className="lg:col-span-2 space-y-4">
               <div className="backdrop-blur-sm bg-white/60 p-4 rounded-lg border border-gray-200 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 space-y-3 sm:space-y-0">
@@ -122,7 +117,6 @@ const Index = () => {
                 <div className="relative bg-gray-50 rounded-lg overflow-hidden shadow-inner h-[500px]">
                   <OdARModelViewer className="w-full h-full" currentView={currentView} />
                   
-                  {/* View indicator */}
                   <div className="absolute bottom-4 left-4 backdrop-blur-md bg-white/60 px-3 py-1.5 rounded-full shadow-sm border border-gray-200 text-xs font-medium">
                     {currentView === 'isometric' && 'Isometric View'}
                     {currentView === 'front' && 'Front View'}
@@ -144,7 +138,6 @@ const Index = () => {
                 <div className="bg-white p-2 rounded border border-gray-200">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" className="w-full h-auto">
                     <g transform="translate(400, 100) scale(0.8) rotate(30) skewX(-30) translate(-120, -80)">
-                      {/* Simple version of original SVG for reference */}
                       <rect x="20" y="20" width="200" height="120" rx="10" ry="10" fill="#bfddf5" stroke="#333" strokeWidth="1.5"/>
                       <path d="M20,20 L70,0 L270,0 L220,20 Z" fill="#d5e6f3" stroke="#333" strokeWidth="1.5"/>
                       <path d="M220,20 L270,0 L270,120 L220,140 Z" fill="#9abcdd" stroke="#333" strokeWidth="1.5"/>
@@ -160,7 +153,6 @@ const Index = () => {
         </main>
       )}
       
-      {/* Bottom blur effect */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-blue-100 to-transparent pointer-events-none z-0"></div>
     </div>
   );
